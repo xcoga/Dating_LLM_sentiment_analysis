@@ -1,2 +1,2 @@
 #ignore all csv files
-/dataset/*.csv
+*.csv
