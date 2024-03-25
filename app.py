@@ -2,52 +2,87 @@ import gradio as gr
 import random
 import time
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from langchain_community.llms import HuggingFacepipeline
 
 # use xichen2 env
-
-model_path = "TheBloke/Llama-2-13B-Chat-GPTQ"
+model_path = "mistralai/Mistral-7B-v0.1"
 device_map = "auto"
 # response = None
 tokenizer = None
 model = None
 
-
-def initialise_model(model_path, device_map):
-
+#Shreyas Code
+def initialise_model(model_path,device_map):
     tokenizer = AutoTokenizer.from_pretrained(model_path)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
 
-    model = AutoModelForCausalLM.from_pretrained(model_path,
-                                                 device_map=device_map,
-                                                 #  max_memory={ 0: "2GB", 1: "5GB", 2: "10GB"},
-                                                 trust_remote_code=False,
-                                                 revision="main")
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        device_map=device_map,
+        #  max_memory={ 0: "2GB", 1: "5GB", 2: "10GB"},
+        trust_remote_code=False,
+        cache_dir='./models',
+        revision="main"
+    )
 
-    return model, tokenizer
+    scoring_pipeline = pipeline(
+        model=model,
+        tokenizer=tokenizer,
+        task="text-generation",
+        return_full_text=False,
+        temperature=0.7,
+        do_sample=True,
+        top_p=0.95,
+        top_k=40,
+        max_new_tokens=512
+    )
+    mistral_pipeline = HuggingFacepipeline(pipeline=scoring_pipeline)
+    return mistral_pipeline
+
+async def generate_response(chat_history, scoring_pipeline):
+    pass
+
+#Xi Chen initial Code
+# def initialise_model(model_path, device_map):
+
+#     tokenizer = AutoTokenizer.from_pretrained(model_path)
+
+#     model = AutoModelForCausalLM.from_pretrained(
+#         model_path,
+#         device_map=device_map,
+#         #  max_memory={ 0: "2GB", 1: "5GB", 2: "10GB"},
+#         trust_remote_code=False,
+#         revision="main"
+#     )
+
+#     return model, tokenizer
 
 
-async def generate_response(prompt, model, tokenizer):
 
-    prompt_template = f'''[INST] <<SYS>>" In the list, there are a set of tuples."\
-        "The first element of the tuple is user1. The other is user 2."\
-        "Give a grade on how interested user 1 is to user 2."\
-    <</SYS>>
-    {prompt}[/INST]
-    \n\n ### Response:'''
+# async def generate_response(prompt, model, tokenizer):
 
-    # General PROMPT template
+#     prompt_template = f'''[INST] <<SYS>>" In the list, there are a set of tuples."\
+#         "The first element of the tuple is user1. The other is user 2."\
+#         "Give a grade on how interested user 1 is to user 2."\
+#     <</SYS>>
+#     {prompt}[/INST]
+#     \n\n ### Response:'''
 
-    # print("\n\n*** Generate:")
-    input_ids = tokenizer(prompt_template, return_tensors="pt").input_ids
-    if torch.cuda.is_available():
-        input_ids = input_ids.to("cuda")
+#     # General PROMPT template
 
-    output = model.generate(inputs=input_ids, temperature=0.7,
-                            do_sample=True, top_p=0.95, top_k=40, max_new_tokens=512)
-    response = tokenizer.decode(output[0])
-    print(response)
+#     # print("\n\n*** Generate:")
+#     input_ids = tokenizer(prompt_template, return_tensors="pt").input_ids
+#     if torch.cuda.is_available():
+#         input_ids = input_ids.to("cuda")
 
-    return response
+#     output = model.generate(inputs=input_ids, temperature=0.7,
+#                             do_sample=True, top_p=0.95, top_k=40, max_new_tokens=512)
+#     response = tokenizer.decode(output[0])
+#     print(response)
+
+#     return response
 
 
 def respond(message, chat_history):
@@ -62,7 +97,8 @@ async def AI_interest_eval(chat_history):
     print("this is chat history", chat_history)
     stringed_chat = str(chat_history)
     print("string chat: ", stringed_chat)
-    AI_response = await generate_response(chat_history, model, tokenizer)
+    # AI_response = await generate_response(chat_history, model, tokenizer)
+    AI_response = await generate_response(chat_history, scoring_pipeline)
 
     return AI_response
 
@@ -80,5 +116,6 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    model, tokenizer = initialise_model(model_path, device_map)
+    # model, tokenizer = initialise_model(model_path, device_map)
+    scoring_pipeline = initialise_model(model_path, device_map)
     demo.launch(debug=True)
