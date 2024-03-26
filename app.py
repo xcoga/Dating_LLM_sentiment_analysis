@@ -3,7 +3,8 @@ import random
 import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-from langchain_community.llms import HuggingFacepipeline
+from langchain_community.llms import HuggingFacePipeline
+from langchain.prompts import PromptTemplate
 
 # use xichen2 env
 model_path = "mistralai/Mistral-7B-v0.1"
@@ -32,17 +33,29 @@ def initialise_model(model_path,device_map):
         tokenizer=tokenizer,
         task="text-generation",
         return_full_text=False,
-        temperature=0.7,
+        temperature=0.1,
         do_sample=True,
         top_p=0.95,
         top_k=40,
-        max_new_tokens=512
+        max_new_tokens=300
     )
-    mistral_pipeline = HuggingFacepipeline(pipeline=scoring_pipeline)
+    mistral_pipeline = HuggingFacePipeline(pipeline=scoring_pipeline)
     return mistral_pipeline
 
 async def generate_response(chat_history, scoring_pipeline):
-    pass
+    prompt_template = '''[INST] <<SYS>>" In the list, there are a set of tuples."\
+        "The first element of the tuple is user1. The other is user 2."\
+        "Give a grade on how interested user 1 is to user 2."\
+        <</SYS>>
+        {chat_history}[/INST]
+        \n\n ### Response:'''
+    
+    prompt = PromptTemplate.from_template(prompt_template)
+    chain = prompt | scoring_pipeline
+
+    response = chain.invoke({"chat_history": chat_history})
+    print(response)
+    return response
 
 #Xi Chen initial Code
 # def initialise_model(model_path, device_map):
