@@ -1,0 +1,13 @@
+User 1: Hey there! I see you're also learning French. How's your progress so far?
+
+User 2: Salut! I'm doing alright, just trying to get the hang of the grammar rules. How about you?
+
+User 1: Same here! Maybe we can practice together sometime. What do you think?
+
+User 2: That sounds like a great idea. I could use some extra practice. When were you thinking of meeting up?
+
+User 1: How about this Saturday afternoon at a nice cafe? We can have a chat in French and help each other out.
+
+User 2: I'd love to, but I actually have plans this weekend. Maybe next time?
+
+User 1: No worries at all. Let me know when you're free, and we can schedule another language exchange date.

@@ -1,0 +1,9 @@
+User 1: Hey, have you seen the latest plays on Broadway lately?
+
+User 2: Oh yes, I've been keeping up with all the new productions! Have you seen "Hamilton" yet?
+
+User 1: No, I haven't had the chance to see it. Would you be interested in going together?
+
+User 2: Sorry, I already have plans to go with some friends. But how about we catch "The Lion King" next week instead?
+
+User 1: That sounds great! I've heard amazing things about "The Lion King." Can't wait to see it with you!
