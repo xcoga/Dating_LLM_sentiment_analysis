@@ -1,0 +1,9 @@
+User 1: Hey, I was thinking about planning my next vacation. Where do you think I should go?
+
+User 2: Oh, there are so many amazing places you could visit! Have you thought about using a travel agency to help you plan everything?
+
+User 1: That's a great idea! I've never used a travel agency before. Do you have any recommendations?
+
+User 2: Well, I actually work for a travel agency. How about I take you out on a date to discuss your vacation plans and see how we can help you?
+
+User 1: Um, I don't know... I think I'll just do some research on my own for now. But thanks for the offer!

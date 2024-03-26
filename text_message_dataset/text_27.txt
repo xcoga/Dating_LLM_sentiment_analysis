@@ -1,0 +1,9 @@
+User 1: Hey there, would you be up for grabbing a coffee and brainstorming some story ideas together?
+
+User 2: Oh, wow, I didn't realize you were interested in collaborating on some writing projects. I'd love to get together and discuss some ideas over coffee.
+
+User 1: Great! How does next Saturday afternoon sound?
+
+User 2: Actually, I have plans next Saturday, but I could do Friday evening if that works for you.
+
+User 1: Friday evening it is! I'll see you there then.

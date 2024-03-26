@@ -1,0 +1,7 @@
+User 1: Hey, I was thinking of planning my dream vacation and I need some advice. 
+User 2: Oh, where are you thinking of going? 
+User 1: I'm thinking of Japan or maybe Iceland. 
+User 2: Both sound amazing! Have you considered going to a travel agency to help plan your trip? 
+User 1: That's a good idea actually. Would you like to come with me for a consultation date at the travel agency? 
+User 2: Oh, I would love to, but I'm really busy this week. Maybe next time? 
+User 1: Sure, no worries. I'll let you know when I'm going. Thanks for the suggestion!
