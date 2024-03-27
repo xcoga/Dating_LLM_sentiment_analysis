@@ -6,8 +6,8 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain_openai import ChatOpenAI
+# from langchain.chains import LLMChain
+# from langchain_openai import ChatOpenAI
 
 # use xichen2 env
 model_path = "mistralai/Mistral-7B-v0.1"
@@ -50,12 +50,17 @@ def initialise_model(model_path,device_map):
     # return llm_openai
 
 async def generate_response(chat_history, model):
-    prompt_template = '''[INST] <<SYS>>" In the list, there are a set of tuples."\
-        "The first element of the tuple is user1. The other is user 2."\
-        "Give a grade on how interested user 1 is to user 2."\
-        <</SYS>>
-        {chat_history}[/INST]
-        \n\n ### Response:'''
+    prompt_template = '''[INST]
+        You are a dating advisor. You are given a chat history which is in list.
+        The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk.
+        The first element of each sublist is user1. The other element is user 2.
+        Give a grade on how interested user 1 is to user 2.
+        
+        ### {chat_history}
+        
+        Response:
+        [/INST]
+        '''
     
     prompt = PromptTemplate.from_template(prompt_template)
     chain = prompt | model
