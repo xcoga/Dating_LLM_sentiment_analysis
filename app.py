@@ -55,7 +55,7 @@ async def generate_response(chat_history, model):
         The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk.
         The first element of each sublist is user1. The other element is user 2.
         Give a grade on how interested user 1 is to user 2.
-        
+
         ### {chat_history}
         
         Response:
@@ -109,7 +109,8 @@ async def generate_response(chat_history, model):
 #     print(response)
 
 #     return response
-
+def extract_text(image):
+    pass
 
 def respond(message, chat_history):
     bot_message = random.choice(
@@ -130,16 +131,26 @@ async def AI_interest_eval(chat_history):
 
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
-    msg = gr.Textbox()
-    clear = gr.ClearButton([msg, chatbot])
-    AI_assessment_btn = gr.Button(value="AI interest evaluation")
-    AI_review = gr.Textbox(label="AI's opinion on this conversation")
+    with gr.Tab("Chatbot"):
+        chatbot = gr.Chatbot()
+        msg = gr.Textbox()
+        clear = gr.ClearButton([msg, chatbot])
+        AI_assessment_btn = gr.Button(value="AI interest evaluation")
+        AI_review = gr.Textbox(label="AI's opinion on this conversation")
 
-    msg.submit(respond, [msg, chatbot], [msg, chatbot])
-    AI_assessment_btn.click(
-        AI_interest_eval, inputs=chatbot, outputs=AI_review)
 
+        msg.submit(respond, [msg, chatbot], [msg, chatbot])
+        AI_assessment_btn.click(
+            AI_interest_eval, inputs=chatbot, outputs=AI_review)
+        
+    with gr.tab("Image upload"):
+        with gr.row():
+            image_input = gr.Image()
+            image_output = gr.Image()
+        image_button = gr.Button("Extract text from image")
+
+    image_button.click(
+        extract_text, inputs=image_input, outputs=image_output)
 
 if __name__ == "__main__":
     # model, tokenizer = initialise_model(model_path, device_map)
