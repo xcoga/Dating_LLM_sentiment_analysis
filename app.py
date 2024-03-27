@@ -1,17 +1,22 @@
 import gradio as gr
 import random
+import os
 import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI
 
 # use xichen2 env
 model_path = "mistralai/Mistral-7B-v0.1"
 device_map = "auto"
-# response = None
-tokenizer = None
+response = None
+# tokenizer = None
 model = None
+# model_path = "gpt-3.5-turbo-16k"
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 #Shreyas Code
 def initialise_model(model_path,device_map):
@@ -41,8 +46,10 @@ def initialise_model(model_path,device_map):
     )
     mistral_pipeline = HuggingFacePipeline(pipeline=scoring_pipeline)
     return mistral_pipeline
+    # llm_openai = ChatOpenAI(model_name=model_path, openai_api_key=OPENAI_API_KEY, temperature=0.3)
+    # return llm_openai
 
-async def generate_response(chat_history, scoring_pipeline):
+async def generate_response(chat_history, model):
     prompt_template = '''[INST] <<SYS>>" In the list, there are a set of tuples."\
         "The first element of the tuple is user1. The other is user 2."\
         "Give a grade on how interested user 1 is to user 2."\
@@ -51,7 +58,8 @@ async def generate_response(chat_history, scoring_pipeline):
         \n\n ### Response:'''
     
     prompt = PromptTemplate.from_template(prompt_template)
-    chain = prompt | scoring_pipeline
+    chain = prompt | model
+    # llm_chain = LLMChain(llm=model, prompt=prompt)
 
     response = chain.invoke({"chat_history": chat_history})
     print(response)
@@ -111,7 +119,7 @@ async def AI_interest_eval(chat_history):
     stringed_chat = str(chat_history)
     print("string chat: ", stringed_chat)
     # AI_response = await generate_response(chat_history, model, tokenizer)
-    AI_response = await generate_response(chat_history, scoring_pipeline)
+    AI_response = await generate_response(chat_history, model)
 
     return AI_response
 
@@ -130,5 +138,5 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     # model, tokenizer = initialise_model(model_path, device_map)
-    scoring_pipeline = initialise_model(model_path, device_map)
+    model = initialise_model(model_path, device_map)
     demo.launch(debug=True)
