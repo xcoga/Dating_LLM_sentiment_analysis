@@ -1,0 +1,7 @@
+User 1: Hey! I just tried out this new recipe for chicken curry and it turned out amazing.  
+User 2: Oh nice! You should share the recipe with me.  
+User 1: Sure! I'll send it to you. But hey, I was thinking, we should take a cooking class together to sharpen our skills.  
+User 2: That's a great idea! I would love to do that. When do you want to go?  
+User 1: How about next Saturday? There's a class on Indian cuisine that I've been eyeing.  
+User 2: Sounds perfect! Count me in. Can't wait to expand our cooking knowledge together.  
+User 1: Awesome! I'll go ahead and book us a spot. Let's become master chefs together!
