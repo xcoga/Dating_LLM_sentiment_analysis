@@ -11,7 +11,7 @@ from langchain.prompts import PromptTemplate
 
 # use xichen2 env
 model_path = "mistralai/Mistral-7B-v0.1"
-device_map = "auto"
+device_map = "cuda:0"
 response = None
 # tokenizer = None
 model = None
@@ -143,8 +143,8 @@ with gr.Blocks() as demo:
         AI_assessment_btn.click(
             AI_interest_eval, inputs=chatbot, outputs=AI_review)
         
-    with gr.tab("Image upload"):
-        with gr.row():
+    with gr.Tab("Image upload"):
+        with gr.Row():
             image_input = gr.Image()
             image_output = gr.Image()
         image_button = gr.Button("Extract text from image")
