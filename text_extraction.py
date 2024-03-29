@@ -9,4 +9,6 @@ def extract_text(image_input):
     #initialise reader and use it to read text from image
     reader = easyocr.Reader(['en'], gpu=True)
     text = reader.readtext(cv_image)
+
+    #need to process text to get just the messages
     return text

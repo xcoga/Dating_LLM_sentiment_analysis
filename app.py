@@ -12,7 +12,7 @@ from text_extraction import extract_text
 
 # use xichen2 env
 model_path = "mistralai/Mistral-7B-v0.1"
-device_map = "cuda:0"
+device_map = "auto"
 response = None
 # tokenizer = None
 model = None
@@ -145,7 +145,7 @@ with gr.Blocks() as demo:
     with gr.Tab("Image upload"):
         with gr.Row():
             image_input = gr.Image()
-            image_output = gr.Image()
+            image_output = gr.Textbox()
         image_button = gr.Button("Extract text from image")
 
     image_button.click(
