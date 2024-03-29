@@ -6,6 +6,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
+from text_extraction import extract_text
 # from langchain.chains import LLMChain
 # from langchain_openai import ChatOpenAI
 
@@ -109,8 +110,6 @@ async def generate_response(chat_history, model):
 #     print(response)
 
 #     return response
-def extract_text(image):
-    pass
 
 def respond(message, chat_history):
     bot_message = random.choice(
