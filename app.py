@@ -1,4 +1,5 @@
 import gradio as gr
+from dotenv import load_dotenv
 import random
 import os
 import time
@@ -11,6 +12,7 @@ from text_extraction import extract_text
 # from langchain_openai import ChatOpenAI
 
 # use xichen2 env
+load_dotenv()
 model_path = "mistralai/Mistral-7B-v0.1"
 device_map = "auto"
 response = None
@@ -49,6 +51,7 @@ def initialise_model(model_path,device_map):
     # llm_openai = ChatOpenAI(model_name=model_path, openai_api_key=OPENAI_API_KEY, temperature=0.3)
     # return llm_openai
 
+#run LLM on local machine to get response
 async def generate_response(chat_history, model):
     prompt_template = "[INST]\n"+\
         "You are a dating advisor. You are given a chat history which is in list. The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk."+\
@@ -67,6 +70,7 @@ async def generate_response(chat_history, model):
     print(response)
     return response
 
+# use replicate API to generate response
 async def replicate_generation(chat_history):
     prompt_template = "You are a dating advisor. You are given a chat history which is in list.\n"+\
         "The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk.\n"+\
@@ -75,7 +79,7 @@ async def replicate_generation(chat_history):
         f"### {chat_history} \n"+\
         "Response:\n"
     output = replicate.run(
-        "mistralai/mixtral-8x7b-instruct-v0.1",
+        "mistralai/mistral-7b-instruct-v0.2",
         input={
             "top_k": 50,
             "top_p": 0.9,
@@ -87,7 +91,7 @@ async def replicate_generation(chat_history):
             "frequency_penalty": 0
         }
     )
-    print(output)
+    return output
 #Xi Chen initial Code
 # def initialise_model(model_path, device_map):
 
