@@ -28,7 +28,6 @@ def initialise_model(model_path,device_map):
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         device_map=device_map,
-        #  max_memory={ 0: "2GB", 1: "5GB", 2: "10GB"},
         trust_remote_code=False,
         cache_dir='./models',
         revision="main"
@@ -59,10 +58,12 @@ async def generate_response(chat_history, model):
         "Response:\n[/INST]"
     
     prompt = PromptTemplate.from_template(prompt_template)
-    chain = prompt | model
+
+    # # ChatGPT model code
     # llm_chain = LLMChain(llm=model, prompt=prompt)
 
-    # response = chain.invoke({"chat_history": chat_history})
+    chain = prompt | model
+    response = chain.invoke({"chat_history": chat_history})
     print(response)
     return response
 
