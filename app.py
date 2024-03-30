@@ -2,7 +2,7 @@ import gradio as gr
 import random
 import os
 import time
-import torch
+import replicate
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
@@ -67,6 +67,27 @@ async def generate_response(chat_history, model):
     print(response)
     return response
 
+async def replicate_generation(chat_history):
+    prompt_template = "You are a dating advisor. You are given a chat history which is in list.\n"+\
+        "The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk.\n"+\
+        "The first element of each sublist is user1. The other element is user 2.\n"+\
+        "Give a grade on how interested user 1 is to user 2.\n"+\
+        f"### {chat_history} \n"+\
+        "Response:\n"
+    output = replicate.run(
+        "mistralai/mixtral-8x7b-instruct-v0.1",
+        input={
+            "top_k": 50,
+            "top_p": 0.9,
+            "prompt": prompt_template,
+            "temperature": 0.3,
+            "max_new_tokens": 1024,
+            "prompt_template": "<s>[INST] {prompt} [/INST] ",
+            "presence_penalty": 0,
+            "frequency_penalty": 0
+        }
+    )
+    print(output)
 #Xi Chen initial Code
 # def initialise_model(model_path, device_map):
 
@@ -120,8 +141,8 @@ async def AI_interest_eval(chat_history):
     stringed_chat = str(chat_history)
     print("string chat: ", stringed_chat)
     # AI_response = await generate_response(chat_history, model, tokenizer)
-    AI_response = await generate_response(chat_history, model)
-
+    # AI_response = await generate_response(chat_history, model)
+    AI_response = await replicate_generation(chat_history)
     return AI_response
 
 
