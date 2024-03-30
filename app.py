@@ -51,23 +51,18 @@ def initialise_model(model_path,device_map):
     # return llm_openai
 
 async def generate_response(chat_history, model):
-    prompt_template = '''[INST]
-        You are a dating advisor. You are given a chat history which is in list.
-        The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk.
-        The first element of each sublist is user1. The other element is user 2.
-        Give a grade on how interested user 1 is to user 2.
-
-        ### {chat_history}
-        
-        Response:
-        [/INST]
-        '''
+    prompt_template = "[INST]\n"+\
+        "You are a dating advisor. You are given a chat history which is in list. The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk."+\
+        "The first element of each sublist is user1. The other element is user 2.\n"+\
+        "Give a grade on how interested user 1 is to user 2.\n"+\
+        f"### {chat_history} \n"+\
+        "Response:\n[/INST]"
     
     prompt = PromptTemplate.from_template(prompt_template)
     chain = prompt | model
     # llm_chain = LLMChain(llm=model, prompt=prompt)
 
-    response = chain.invoke({"chat_history": chat_history})
+    # response = chain.invoke({"chat_history": chat_history})
     print(response)
     return response
 
