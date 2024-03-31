@@ -13,7 +13,7 @@ from text_extraction import extract_text
 
 # use xichen2 env
 load_dotenv()
-model_path = "mistralai/Mistral-7B-v0.1"
+model_path = "mistralai/mistral-7b-instruct-v0.2"
 device_map = "auto"
 response = None
 # tokenizer = None
@@ -79,7 +79,7 @@ async def replicate_generation(chat_history):
         f"### {chat_history} \n"+\
         "Response:\n"
     output = replicate.run(
-        "mistralai/mistral-7b-instruct-v0.2",
+        model_path,
         input={
             "top_k": 50,
             "top_p": 0.9,
