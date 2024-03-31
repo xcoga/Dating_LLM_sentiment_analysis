@@ -8,19 +8,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
 from text_extraction import extract_text
-# from langchain.chains import LLMChain
-# from langchain_openai import ChatOpenAI
 
 # use xichen2 env
 load_dotenv()
-model_path = "mistralai/mistral-7b-instruct-v0.2"
+model_path = "mistralai/mixtral-8x7b-instruct-v0.1"
 device_map = "auto"
 response = None
-# tokenizer = None
 model = None
-# model_path = "gpt-3.5-turbo-16k"
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
+os.environ["REPLICATE_API_TOKEN"] = "r8_HXkl38P4AwS8wMIQeiM32odzsKNwrir3Ff4BH"
 #Shreyas Code
 def initialise_model(model_path,device_map):
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -48,8 +43,6 @@ def initialise_model(model_path,device_map):
     )
     mistral_pipeline = HuggingFacePipeline(pipeline=scoring_pipeline)
     return mistral_pipeline
-    # llm_openai = ChatOpenAI(model_name=model_path, openai_api_key=OPENAI_API_KEY, temperature=0.3)
-    # return llm_openai
 
 #run LLM on local machine to get response
 async def generate_response(chat_history, model):
@@ -61,9 +54,6 @@ async def generate_response(chat_history, model):
         "Response:\n[/INST]"
     
     prompt = PromptTemplate.from_template(prompt_template)
-
-    # # ChatGPT model code
-    # llm_chain = LLMChain(llm=model, prompt=prompt)
 
     chain = prompt | model
     response = chain.invoke({"chat_history": chat_history})
@@ -91,6 +81,7 @@ async def replicate_generation(chat_history):
             "frequency_penalty": 0
         }
     )
+    output = "".join(output)
     return output
 #Xi Chen initial Code
 # def initialise_model(model_path, device_map):
@@ -174,5 +165,5 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     # model, tokenizer = initialise_model(model_path, device_map)
-    model = initialise_model(model_path, device_map)
+    # model = initialise_model(model_path, device_map)
     demo.launch(debug=True)
