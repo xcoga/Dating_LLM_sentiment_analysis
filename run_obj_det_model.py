@@ -36,10 +36,10 @@ def retrieve_detection_coordinates(detections):
 
 
 if __name__ == '__main__':
-    IMAGE_PATH = "E:/tf_models/workspace/training_demo/images/train/*.jpg" 
-    MODEL_PATH = "E:/tf_models/workspace/training_demo/exported-models/my_model/saved_model"
-    PATH_TO_LABELS = "E:/tf_models/workspace/training_demo/annotations/label_map.pbtxt"
-    OUTPUT_DIR = "E:/tf_models/workspace/training_demo/images/output_imgs"
+    IMAGE_PATH = "E:/Dating_LLM_Sentiment_Analysis/experimental_stuff/detection_folder/images/train/*.jpg" 
+    MODEL_PATH = "E:/Dating_LLM_Sentiment_Analysis/Dating_LLM_sentiment_analysis/exported-models/det_model/saved_model"
+    PATH_TO_LABELS = "E:/Dating_LLM_Sentiment_Analysis/experimental_stuff/detection_folder/annotations/label_map.pbtxt"
+    OUTPUT_DIR = "E:/Dating_LLM_Sentiment_Analysis/experimental_stuff/detection_folder/images/output_imgs"
     count = 0
 
      # Assuming all images are in JPEG format
