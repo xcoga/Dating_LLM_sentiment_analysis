@@ -62,12 +62,43 @@ async def generate_response(chat_history, model):
 
 # use replicate API to generate response
 async def replicate_generation(chat_history):
-    prompt_template = "You are a dating advisor. You are given a chat history which is in list.\n"+\
-        "The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk.\n"+\
-        "The first element of each sublist is user1. The other element is user 2.\n"+\
-        "Give a grade on how interested user 1 is to user 2.\n"+\
-        f"### {chat_history} \n"+\
-        "Response:\n"
+    prompt_template = """
+    You are a dating advisor. You will be given a chat history and you are required to give a overall score on how interested user 1 is to user 2.
+
+    Your task is to evalaute based on 3 categories: capital letters used, the frequency of the text and the emojis used.
+
+    The score for each of them should be between 0 to 10.
+
+    Please output the score in the following format: "category: /10".
+    
+    The category should be one of the 3 categories. The score should be before the '/'.
+
+    The same format should be followed for the frequency of the text and the emojis used.
+
+    Please give a overall score based on the above three scores, which is between 0 to 30.
+    -------------------------------------------
+    Here is one example:
+
+    User 1:
+
+    Capital letters: 7/10
+    Frequency: 8/10
+    Emojis: 5/10
+    User 2:
+
+    Capital letters: 6/10
+    Frequency: 8/10
+    Emojis: 5/10
+
+    Overall score for User 1: 20/30
+    Overall score for User 2: 19/30
+    -------------------------------------------
+    The chat history is delimited by ###.
+
+    ### {chat_history}
+
+    Response:""".format(chat_history=chat_history)
+
     output = replicate.run(
         model_path,
         input={
