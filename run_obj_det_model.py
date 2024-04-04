@@ -26,7 +26,7 @@ def load_image_into_numpy_array(path):
 def retrieve_detection_coordinates(detections):
     num_detections = int(detections.pop('num_detections'))
     detections = {key: value[0, :num_detections].numpy()
-                   for key, value in detections.items()}
+                  for key, value in detections.items()}
     detections['num_detections'] = num_detections
 
     # detection_classes should be ints.
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     OUTPUT_DIR = "E:/Dating_LLM_Sentiment_Analysis/experimental_stuff/detection_folder/images/output_imgs"
     count = 0
 
-     # Assuming all images are in JPEG format
+    # Assuming all images are in JPEG format
     images = glob.glob(IMAGE_PATH)
 
     model = tf.saved_model.load(MODEL_PATH)
