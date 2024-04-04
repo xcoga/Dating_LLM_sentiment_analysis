@@ -2,7 +2,7 @@ import chromadb
 import os
 
 # Define folder path
-folder_path = 'E:/Dating_LLM_Sentiment_Analysis/Dating_LLM_sentiment_analysis/text_message_dataset'
+folder_path = './text_message_dataset'
 
 # Function to read text files from a folder
 def read_text_files(folder_path):
@@ -34,7 +34,13 @@ def add_new_collection(collection_name, folder_path, client):
     )
     return collection
 
-
+def get_documents(collection,query):
+    #Query the collection
+    results = collection.query(
+        query_texts=[query],
+        n_results=2
+    )
+    return results.documents
 
 if __name__ == "__main__":
     # If we are storing permanently, use this
