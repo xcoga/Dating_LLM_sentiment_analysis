@@ -123,11 +123,43 @@ async def replicate_generation(chat_history):
     output = "".join(output)
     return output
 
-async def RAG(conversation_output,collection,query_text):
+async def RAG(chat_history,collection):
+    conversation_output = await replicate_generation(chat_history)
     #Query the collection
+    query_text = ""
     results = get_documents(collection,query_text)
 
+    prompt_template = """
+    You are a dating advisor. You will be given a analysis of the conversation between two individuals.
 
+    You are also given few references of conversation between two individuals who are using the same dating platform.
+
+    You are required to use both the analysis of the conversation and the references to generate new responses for the conversation.
+
+    The response should help the individuals have a higher chance of going on a date.
+    
+    The score for the conversation is delimited by ### and the references are delimited by &&&.
+    ### {conversation_output}
+
+    &&& {references}
+
+    Response:""".format(conversation_output=conversation_output,references=results)
+
+    output = replicate.run(
+        model_path,
+        input={
+            "top_k": 50,
+            "top_p": 0.9,
+            "prompt": prompt_template,
+            "temperature": 0.3,
+            "max_new_tokens": 1024,
+            "prompt_template": "<s>[INST] {prompt} [/INST] ",
+            "presence_penalty": 0,
+            "frequency_penalty": 0
+        }
+    )
+    output = "".join(output)
+    return output
 
 def respond(message, chat_history):
     bot_message = random.choice(
@@ -141,7 +173,7 @@ async def AI_interest_eval(chat_history):
     print("this is chat history", chat_history)
     stringed_chat = str(chat_history)
     print("string chat: ", stringed_chat)
-    AI_response = await replicate_generation(chat_history)
+    AI_response = await RAG(chat_history, collection)
     return AI_response
 
 
