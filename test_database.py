@@ -40,7 +40,7 @@ def get_documents(collection,query):
         query_texts=[query],
         n_results=2
     )
-    return results.documents
+    return results['documents']
 
 if __name__ == "__main__":
     # If we are storing permanently, use this
@@ -56,4 +56,4 @@ if __name__ == "__main__":
         n_results=2
     )
 
-    print(results)
+    print(results['documents'])
