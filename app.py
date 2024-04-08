@@ -8,42 +8,49 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
 from text_extraction import extract_text
+from test_database import add_new_collection, get_documents
+import chromadb
 
 # use xichen2 env
 load_dotenv()
 model_path = "mistralai/mixtral-8x7b-instruct-v0.1"
-device_map = "auto"
+collection = None
 response = None
 model = None
 os.environ["REPLICATE_API_TOKEN"] = "r8_HXkl38P4AwS8wMIQeiM32odzsKNwrir3Ff4BH"
 
 #Shreyas Code
-def initialise_model(model_path,device_map):
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "right"
+# def initialise_model(model_path,device_map):
+#     tokenizer = AutoTokenizer.from_pretrained(model_path)
+#     tokenizer.pad_token = tokenizer.eos_token
+#     tokenizer.padding_side = "right"
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        device_map=device_map,
-        trust_remote_code=False,
-        cache_dir='./models',
-        revision="main"
-    )
+#     model = AutoModelForCausalLM.from_pretrained(
+#         model_path,
+#         device_map=device_map,
+#         trust_remote_code=False,
+#         cache_dir='./models',
+#         revision="main"
+#     )
 
-    scoring_pipeline = pipeline(
-        model=model,
-        tokenizer=tokenizer,
-        task="text-generation",
-        return_full_text=False,
-        temperature=0.1,
-        do_sample=True,
-        top_p=0.95,
-        top_k=40,
-        max_new_tokens=300
-    )
-    mistral_pipeline = HuggingFacePipeline(pipeline=scoring_pipeline)
-    return mistral_pipeline
+#     scoring_pipeline = pipeline(
+#         model=model,
+#         tokenizer=tokenizer,
+#         task="text-generation",
+#         return_full_text=False,
+#         temperature=0.1,
+#         do_sample=True,
+#         top_p=0.95,
+#         top_k=40,
+#         max_new_tokens=300
+#     )
+#     mistral_pipeline = HuggingFacePipeline(pipeline=scoring_pipeline)
+#     return mistral_pipeline
+
+def initialise_db(folder_path='./text_message_dataset'):
+    chroma_client = chromadb.Client()
+    collection = add_new_collection("ask_out_collection", folder_path, chroma_client)
+    return collection
 
 #run LLM on local machine to get response
 async def generate_response(chat_history, model):
@@ -116,6 +123,44 @@ async def replicate_generation(chat_history):
     output = "".join(output)
     return output
 
+async def RAG(chat_history,collection):
+    conversation_output = await replicate_generation(chat_history)
+    #Query the collection
+    query_text = ""
+    results = get_documents(collection,query_text)
+
+    prompt_template = """
+    You are a dating advisor. You will be given a analysis of the conversation between two individuals.
+
+    You are also given few references of conversation between two individuals who are using the same dating platform.
+
+    You are required to use both the analysis of the conversation and the references to generate new responses for the conversation.
+
+    The response should help the individuals have a higher chance of going on a date.
+    
+    The score for the conversation is delimited by ### and the references are delimited by &&&.
+    ### {conversation_output}
+
+    &&& {references}
+
+    Response:""".format(conversation_output=conversation_output,references=results)
+
+    output = replicate.run(
+        model_path,
+        input={
+            "top_k": 50,
+            "top_p": 0.9,
+            "prompt": prompt_template,
+            "temperature": 0.3,
+            "max_new_tokens": 1024,
+            "prompt_template": "<s>[INST] {prompt} [/INST] ",
+            "presence_penalty": 0,
+            "frequency_penalty": 0
+        }
+    )
+    output = "".join(output)
+    return output
+
 def respond(message, chat_history):
     bot_message = random.choice(
         ["How are you?", "I love you", "I'm very hungry"])
@@ -128,7 +173,7 @@ async def AI_interest_eval(chat_history):
     print("this is chat history", chat_history)
     stringed_chat = str(chat_history)
     print("string chat: ", stringed_chat)
-    AI_response = await replicate_generation(chat_history)
+    AI_response = await RAG(chat_history, collection)
     return AI_response
 
 
@@ -159,4 +204,5 @@ with gr.Blocks() as demo:
     )
 
 if __name__ == "__main__":
+    collection = initialise_db()
     demo.launch(debug=True)
