@@ -192,9 +192,12 @@ with gr.Blocks() as demo:
         
     with gr.Tab("Image upload"):
         with gr.Row():
-            image_input = gr.Image()
+            image_input = gr.ImageEditor()
             image_output = gr.Textbox()
         image_button = gr.Button("Extract text from image")
+
+        
+
 
     image_button.click(
         extract_text, inputs=image_input, outputs=image_output
