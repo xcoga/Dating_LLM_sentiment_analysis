@@ -130,20 +130,22 @@ async def RAG(chat_history,collection):
     results = get_documents(collection,query_text)
 
     prompt_template = """
-    You are a dating advisor. You will be given a analysis of the conversation between two individuals.
+    You are a dating advisor. You will be given a analysis of the chat history between two individuals.
 
     You are also given few references of conversation between two individuals who are using the same dating platform.
 
-    You are required to use both the analysis of the conversation and the references to generate new responses for the conversation.
+    You are required to use both the analysis of the chat history and the references to generate new responses related to the chat history.
 
     The response should help the individuals have a higher chance of going on a date.
     
-    The score for the conversation is delimited by ### and the references are delimited by &&&.
-    ### {conversation_output}
+    The score for the conversation is delimited by ###, the references are delimited by &&& and the chat history is delimited by !!!.
+    !!! {chat_history}
+
+    ### {score}
 
     &&& {references}
 
-    Response:""".format(conversation_output=conversation_output,references=results)
+    Response:""".format(chat_history=chat_history,score=conversation_output,references=results)
 
     output = replicate.run(
         model_path,
@@ -195,9 +197,6 @@ with gr.Blocks() as demo:
             image_input = gr.ImageEditor()
             image_output = gr.Textbox()
         image_button = gr.Button("Extract text from image")
-
-        
-
 
     image_button.click(
         extract_text, inputs=image_input, outputs=image_output
