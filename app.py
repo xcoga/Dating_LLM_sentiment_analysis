@@ -194,7 +194,9 @@ with gr.Blocks() as demo:
         
     with gr.Tab("Image upload"):
         with gr.Row():
-            image_input = gr.ImageEditor()
+            # image_input = gr.ImageEditor()
+            # image_input = gr.Image()
+            image_input = gr.File(file_count = 'single', label = "upload your jpeg file here")
             image_output = gr.Textbox()
         image_button = gr.Button("Extract text from image")
 

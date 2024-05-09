@@ -1,4 +1,5 @@
 #ignore all csv files
 *.csv
 .env
+/__pycache__/
 /models
