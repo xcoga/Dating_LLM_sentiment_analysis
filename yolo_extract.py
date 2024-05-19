@@ -140,7 +140,7 @@ def remove_image_parts(image, xyxy_coordinates):
     return img, removed_part
 
 #This function is to crop out the status and timestamps before feeding to easyOCR, to get better readings.
-def crop_image_parts(msg_components_list, image_path, save_path = "/home/Cropping"):
+def crop_image_parts(msg_components_list, image_path, save_path = "/home/Dating_LLM_sentiment_analysis/Cropping"):
     img = Image.open(image_path).convert('RGB') 
     
     for val in msg_components_list:
@@ -166,6 +166,7 @@ def crop_image_parts(msg_components_list, image_path, save_path = "/home/Croppin
 #This function is an auxiliary function used to clear out the entire folder
 def clear_folder(folder_path):
     try:
+
         # Delete the folder and all its contents
         shutil.rmtree(folder_path)
         
@@ -190,6 +191,7 @@ def run_YOLO_model(model_path, image_path):
 #This function will run the model on all images in the Cropping folder and return its results in a list.
 def run_easy_OCR(folder_path):
     result_list = []
+    appended_text = ""
 
     reader = easyocr.Reader(['en'])
     files = os.listdir(folder_path)
@@ -200,6 +202,7 @@ def run_easy_OCR(folder_path):
 
     for file_name in files:
         file_path = os.path.join(folder_path, file_name)
+        appended_text = ""
         
         if file_name.endswith('.jpg') or file_name.endswith('.jpeg') or file_name.endswith('.png'):
             try:
@@ -211,14 +214,23 @@ def run_easy_OCR(folder_path):
 
                 # Output the OCR result
                 print(f"=== OCR Result for {file_name} ===")
-                print(result[0][1])
-                result_list.append((file_name, result[0][1]))
+                #TODO this is the bug. If there are multiple lines, this will not work.
+                for i in range(len(result)):
+                    #To make it neater to read, for messages, we add a new line and spacing in the string.
+                    if file_name.startswith('msg'):
+                        appended_text += "\n " + result[i][1]
+                    else:
+                        appended_text += result[i][1]
+
+                print("final appended text: ", appended_text)
+                result_list.append((file_name, appended_text))
                 print("\n")
 
             except Exception as e:
                 print(f"Error processing {file_name}: {e}")
 
     #Clear the folder, so that wont mix up with next image
+
     clear_folder(folder_path)
 
 
@@ -291,7 +303,7 @@ def sort_messages_by_order(data):
 
 def get_cur_and_other_user_messages(img_path):
 
-    YOLO_path = "./models/yolo8_model.onnx"
+    YOLO_path = "./models/best.onnx"
     cropped_img_path_cur_user = "./Cropping/cur_user"
     cropped_img_path_oth_user = "./Cropping/oth_user"
 
@@ -311,8 +323,8 @@ def get_cur_and_other_user_messages(img_path):
 
 # if __name__ == "__main__":
 
-#     img_path = "/home/datasets/data/images/train/Screenshot_20240326_214535_Telegram.jpg"
-#     YOLO_path = "/home/yolo8_model.onnx"
+#     img_path = "/home/data/images/train/Screenshot_20240519_110552_Telegram.jpg"
+#     YOLO_path = "/home/best.onnx"
 #     cropped_img_path_cur_user = "/home/Cropping/cur_user"
 #     cropped_img_path_oth_user = "/home/Cropping/oth_user"
 
