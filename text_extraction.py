@@ -43,5 +43,10 @@ def extract_text(image_path):
     all_user.update(other_user)
     all_dict = sort_messages_by_order(all_user)
 
-
-    return all_dict
+    all_messages = []
+    for key in all_dict:
+        all_messages.append(all_dict[key][2]+": "+all_dict[key][0])
+    
+    all_messages = "\n".join(all_messages)
+    
+    return all_messages

@@ -187,7 +187,6 @@ with gr.Blocks() as demo:
         AI_assessment_btn = gr.Button(value="AI interest evaluation")
         AI_review = gr.Textbox(label="AI's opinion on this conversation")
 
-
         msg.submit(respond, [msg, chatbot], [msg, chatbot])
         AI_assessment_btn.click(
             AI_interest_eval, inputs=chatbot, outputs=AI_review)
