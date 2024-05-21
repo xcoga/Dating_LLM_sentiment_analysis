@@ -214,7 +214,9 @@ def run_easy_OCR(folder_path):
 
                 # Output the OCR result
                 print(f"=== OCR Result for {file_name} ===")
-                #TODO this is the bug. If there are multiple lines, this will not work.
+
+                #When there are multiple lines, easyOCR returns a list
+                #Iterate through the list
                 for i in range(len(result)):
                     #To make it neater to read, for messages, we add a new line and spacing in the string.
                     if file_name.startswith('msg'):
