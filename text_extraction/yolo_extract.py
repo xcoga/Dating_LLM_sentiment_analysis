@@ -7,7 +7,9 @@ import re
 import shutil
 
 ############################# functions processing the image  ################################################################
-#This function processes the YOLO readings and retrieve which coordinates belong to which class.
+# This function processes the YOLO readings and retrieve which coordinates belong to which class.
+
+
 def extract_message_components(box_coordinates, classes):
 
     chatframe = []
@@ -19,27 +21,29 @@ def extract_message_components(box_coordinates, classes):
     count = 0
 
     for val in classes:
-        #If class is chatframe
+        # If class is chatframe
         if val == 0:
             chatframe.append(box_coordinates[count])
-        #If the class is current_user
+        # If the class is current_user
         elif val == 1:
             cur_user_boxes.append(box_coordinates[count])
-        #If the class is other user
+        # If the class is other user
         elif val == 2:
             oth_user_boxes.append(box_coordinates[count])
-        #If class is message status
+        # If class is message status
         elif val == 3:
             message_statuses.append(box_coordinates[count])
-        #If class is timestamp
+        # If class is timestamp
         else:
             timestamps.append(box_coordinates[count])
 
-        count+=1
+        count += 1
 
     return chatframe, cur_user_boxes, oth_user_boxes, message_statuses, timestamps
 
-#This function checks if coord1 is within coord2
+# This function checks if coord1 is within coord2
+
+
 def is_within(coord1, coord2):
     # Check if coord1 (x1, y1, x2, y2) is within coord2 (x1, y1, x2, y2)
     x1, y1, x2, y2 = coord1
@@ -47,47 +51,45 @@ def is_within(coord1, coord2):
     return x1 >= xm1 and y1 >= ym1 and x2 <= xm2 and y2 <= ym2
 
 
-#This function will combine the arguments to form a list of elements of [Message, status, Timestamp] for each user.
+# This function will combine the arguments to form a list of elements of [Message, status, Timestamp] for each user.
 def combine_message_components(cur_user_msgs, oth_user_msgs, message_statuses, timestamps):
 
-    #Format of list to be [Message, status, Timestamp]
+    # Format of list to be [Message, status, Timestamp]
 
     combined_cur_user = []
     combined_oth_user = []
 
-
     for val in cur_user_msgs:
-        combined_cur_user.append([val,None,None])
-    
+        combined_cur_user.append([val, None, None])
+
     for val in oth_user_msgs:
-        combined_oth_user.append([val,None,None])
+        combined_oth_user.append([val, None, None])
 
     for status in message_statuses:
         for i in range(len(combined_cur_user)):
-            #If the status coordinates is within the message box coordinates
+            # If the status coordinates is within the message box coordinates
             if is_within(status, combined_cur_user[i][0]):
                 temp = combined_cur_user[i]
                 temp[1] = status
                 combined_cur_user[i] = temp
 
         for i in range(len(combined_oth_user)):
-            #If status coordinates is within the message box coordinates
+            # If status coordinates is within the message box coordinates
             if is_within(status, combined_oth_user[i][0]):
                 temp = combined_oth_user[i]
                 temp[1] = status
                 combined_oth_user[i] = temp
 
-    
     for ts in timestamps:
         for i in range(len(combined_cur_user)):
-            #If the status coordinates is within the message box coordinates
+            # If the status coordinates is within the message box coordinates
             if is_within(ts, combined_cur_user[i][0]):
                 temp = combined_cur_user[i]
                 temp[2] = ts
                 combined_cur_user[i] = temp
 
         for i in range(len(combined_oth_user)):
-            #If status coordinates is within the message box coordinates
+            # If status coordinates is within the message box coordinates
             if is_within(ts, combined_oth_user[i][0]):
                 temp = combined_oth_user[i]
                 temp[2] = ts
@@ -96,7 +98,7 @@ def combine_message_components(cur_user_msgs, oth_user_msgs, message_statuses, t
     return combined_cur_user, combined_oth_user
 
 
-#This function is to split the readings from the YOLO model into the 2 users involved in the conversation.
+# This function is to split the readings from the YOLO model into the 2 users involved in the conversation.
 def get_messages_components_list(results):
     for r in results:
         boxes = r.boxes
@@ -104,23 +106,23 @@ def get_messages_components_list(results):
         classes = boxes.cls
         classes = classes.tolist()
 
-        #There are multiple formats for the output of the xy coordinates, but we will use xyxy
+        # There are multiple formats for the output of the xy coordinates, but we will use xyxy
         coordinates = boxes.xyxy
         coordinates = coordinates.tolist()
 
-        chatframe, cur_user_boxes, oth_user_boxes, message_statuses, timestamps = extract_message_components(coordinates, classes)
-        cur_user_msgs, oth_user_msgs = combine_message_components(cur_user_boxes, oth_user_boxes, message_statuses, timestamps)
+        chatframe, cur_user_boxes, oth_user_boxes, message_statuses, timestamps = extract_message_components(
+            coordinates, classes)
+        cur_user_msgs, oth_user_msgs = combine_message_components(
+            cur_user_boxes, oth_user_boxes, message_statuses, timestamps)
 
     return cur_user_msgs, oth_user_msgs
 
 
-#This function is to completely blacken parts of the image that we do not want.
+# This function is to completely blacken parts of the image that we do not want.
 def remove_image_parts(image, xyxy_coordinates):
-    
 
-    #Because of the image_np requirements, lets round the xyxy_coordinates to nearest int
+    # Because of the image_np requirements, lets round the xyxy_coordinates to nearest int
     xyxy_coordinates = [round(coord) for coord in xyxy_coordinates]
-
 
     image_np = np.array(image)
 
@@ -128,82 +130,82 @@ def remove_image_parts(image, xyxy_coordinates):
     y1 = xyxy_coordinates[1]
     x2 = xyxy_coordinates[2]
     y2 = xyxy_coordinates[3]
-    
 
-    ##Saving this part before its deleted in case necessary 
-    removed_part = image.crop((x1,y1,x2,y2))
+    # Saving this part before its deleted in case necessary
+    removed_part = image.crop((x1, y1, x2, y2))
 
-
-    image_np[y1:y2, x1:x2] = (0,0,0)
+    image_np[y1:y2, x1:x2] = (0, 0, 0)
     img = Image.fromarray(image_np)
 
     return img, removed_part
 
-#This function is to crop out the status and timestamps before feeding to easyOCR, to get better readings.
-def crop_image_parts(msg_components_list, image_path, save_path = "/home/Dating_LLM_sentiment_analysis/Cropping"):
-    img = Image.open(image_path).convert('RGB') 
-    
+# This function is to crop out the status and timestamps before feeding to easyOCR, to get better readings.
+
+
+def crop_image_parts(msg_components_list, image_path, save_path="/home/Dating_LLM_sentiment_analysis/Cropping"):
+    img = Image.open(image_path).convert('RGB')
+
     for val in msg_components_list:
         img_copy = img
         msg = val[0]
         status = val[1]
         timestamp = val[2]
 
-        #First, remove the timestamps and statuses, as they affect the EasyOCR recognition.
+        # First, remove the timestamps and statuses, as they affect the EasyOCR recognition.
         if val[1] != None:
             img_copy, status_img = remove_image_parts(img_copy, val[1])
         if val[2] != None:
             img_copy, timestamp_img = remove_image_parts(img_copy, val[2])
 
-
-
-        #Since we ar eusing the timestamp and the message images, we save them. Discard the status since its unused.
+        # Since we ar eusing the timestamp and the message images, we save them. Discard the status since its unused.
         timestamp_img.save(f"{save_path}/ts_{val[0]}.jpg")
-        #Crop the message from the image
+        # Crop the message from the image
         msg = img_copy.crop(msg)
-        msg.save(f"{save_path}/msg_{val[0]}.jpg")    
+        msg.save(f"{save_path}/msg_{val[0]}.jpg")
 
-#This function is an auxiliary function used to clear out the entire folder
+# This function is an auxiliary function used to clear out the entire folder
+
+
 def clear_folder(folder_path):
     try:
 
         # Delete the folder and all its contents
         shutil.rmtree(folder_path)
-        
+
         # Recreate the folder
         os.makedirs(folder_path)
-        
+
         print(f"Folder '{folder_path}' deleted and recreated successfully.")
     except Exception as e:
-        print(f"Failed to delete and recreate folder '{folder_path}'. Reason: {e}")
-
-
-
+        print(f"Failed to delete and recreate folder '{
+              folder_path}'. Reason: {e}")
 
 
 #################################### functions after processing the image ####################################
-#This function runs and returns the results of the YOLO detection
+# This function runs and returns the results of the YOLO detection
 def run_YOLO_model(model_path, image_path):
     model = YOLO(model_path)
 
     return model(image_path)
 
-#This function will run the model on all images in the Cropping folder and return its results in a list.
+# This function will run the model on all images in the Cropping folder and return its results in a list.
+
+
 def run_easy_OCR(folder_path):
     result_list = []
     appended_text = ""
 
     reader = easyocr.Reader(['en'])
     files = os.listdir(folder_path)
-    
-    #sort files to have message come before timestamp.
-    #This is to sort the result_list before it gets into a bigger mess to sort.
+
+    # sort files to have message come before timestamp.
+    # This is to sort the result_list before it gets into a bigger mess to sort.
     files = sorted(files, key=custom_sort_key)
 
     for file_name in files:
         file_path = os.path.join(folder_path, file_name)
         appended_text = ""
-        
+
         if file_name.endswith('.jpg') or file_name.endswith('.jpeg') or file_name.endswith('.png'):
             try:
                 # Open the image using PIL (Python Imaging Library)
@@ -215,10 +217,10 @@ def run_easy_OCR(folder_path):
                 # Output the OCR result
                 print(f"=== OCR Result for {file_name} ===")
 
-                #When there are multiple lines, easyOCR returns a list
-                #Iterate through the list
+                # When there are multiple lines, easyOCR returns a list
+                # Iterate through the list
                 for i in range(len(result)):
-                    #To make it neater to read, for messages, we add a new line and spacing in the string.
+                    # To make it neater to read, for messages, we add a new line and spacing in the string.
                     if file_name.startswith('msg'):
                         appended_text += "\n " + result[i][1]
                     else:
@@ -231,14 +233,15 @@ def run_easy_OCR(folder_path):
             except Exception as e:
                 print(f"Error processing {file_name}: {e}")
 
-    #Clear the folder, so that wont mix up with next image
+    # Clear the folder, so that wont mix up with next image
 
     clear_folder(folder_path)
 
-
     return result_list
 
-#This function is an auxiliary function for 'run_easy_OCR' in order to sort the files in the order of their starting name: 'msg, ts, other files'
+# This function is an auxiliary function for 'run_easy_OCR' in order to sort the files in the order of their starting name: 'msg, ts, other files'
+
+
 def custom_sort_key(filename):
     if filename.startswith('msg'):
         # Filenames starting with 'msg' should come first
@@ -251,7 +254,7 @@ def custom_sort_key(filename):
         return (2, filename)  # Return tuple (2, filename)
 
 
-#This function is to place together the message and time in the results_list under a single key in the dictionary.
+# This function is to place together the message and time in the results_list under a single key in the dictionary.
 def pair_time_and_message(result_list):
     paired_dict = {}
 
@@ -259,10 +262,11 @@ def pair_time_and_message(result_list):
         key = extract_filename(val[0])  # Extract key from the filename
 
         if key not in paired_dict:
-            #If there was a failure detecting the message, and only the timestamp is detected, then abandon the timestamp
+            # If there was a failure detecting the message, and only the timestamp is detected, then abandon the timestamp
             if val[0].startswith('ts'):
                 continue
-            paired_dict[key] = [val[1]]  # Initialize an empty list for the key if not present
+            # Initialize an empty list for the key if not present
+            paired_dict[key] = [val[1]]
 
         else:
             temp = paired_dict[key]
@@ -272,18 +276,17 @@ def pair_time_and_message(result_list):
     return sort_messages_by_order(paired_dict)
 
 
-
-#This function is auxiliary fn for 'pair_time_and_message'. This is used to retrieve [1,2,3,4] coordinates from filename 'ts_[1,2,3,4].jpg'
+# This function is auxiliary fn for 'pair_time_and_message'. This is used to retrieve [1,2,3,4] coordinates from filename 'ts_[1,2,3,4].jpg'
 def extract_filename(filename):
     match = re.search(r'\[(.*?)\]', filename)
     if match:
         values_str = match.group(1)  # Get the string inside brackets
         return values_str
     else:
-        return None 
-        
+        return None
 
-#This function will sort the messages in the dictionary 'data' in the correct order, based on their y-coordinate on the screen
+
+# This function will sort the messages in the dictionary 'data' in the correct order, based on their y-coordinate on the screen
 def sort_messages_by_order(data):
     # Parse and sort keys based on y-axis values
     sorted_keys = sorted(
@@ -292,7 +295,8 @@ def sort_messages_by_order(data):
             max(float(key.split(',')[1]), float(key.split(',')[3])),  # y2
             key
         ) for key in data),
-        key=lambda item: item[0]  # Sort based on y1 (you can use item[1] for sorting based on y2)
+        # Sort based on y1 (you can use item[1] for sorting based on y2)
+        key=lambda item: item[0]
     )
 
     # Rebuild the dictionary with sorted keys
@@ -309,6 +313,10 @@ def get_cur_and_other_user_messages(img_path):
     cropped_img_path_cur_user = "./text_extraction/Cropping/cur_user"
     cropped_img_path_oth_user = "./text_extraction/Cropping/oth_user"
 
+    # Create directories if they don't exist
+    os.makedirs(cropped_img_path_cur_user, exist_ok=True)
+    os.makedirs(cropped_img_path_oth_user, exist_ok=True)
+
     results = run_YOLO_model(YOLO_path, img_path)
     cur_user_msgs, oth_user_msgs = get_messages_components_list(results)
     crop_image_parts(cur_user_msgs, img_path, cropped_img_path_cur_user)
@@ -319,7 +327,6 @@ def get_cur_and_other_user_messages(img_path):
 
     paired_dict_cur_user = pair_time_and_message(prediction_list_cur_user)
     paired_dict_oth_user = pair_time_and_message(prediction_list_oth_user)
-
 
     return paired_dict_cur_user, paired_dict_oth_user
 
@@ -340,24 +347,3 @@ def get_cur_and_other_user_messages(img_path):
 
 #     paired_dict_cur_user = pair_time_and_message(prediction_list_cur_user)
 #     paired_dict_oth_user = pair_time_and_message(prediction_list_oth_user)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-

@@ -6,76 +6,109 @@ import replicate
 import os
 
 
-model_path = "mistralai/mixtral-8x7b-instruct-v0.1"
+# model_path = "meta/meta-llama-3-8b-instruct"
+model_path = "meta/meta-llama-3-70b-instruct"
+# model_path = "meta/meta-llama-3.1-405b-instruct"
 response = None
 model = None
-os.environ["REPLICATE_API_TOKEN"] = "r8_HXkl38P4AwS8wMIQeiM32odzsKNwrir3Ff4BH"
-collection = None
+os.environ["REPLICATE_API_TOKEN"] = "r8_Jzt43L6OlVR9Z5E57qUk3IHTFxxlfed4JUPFN"
 
 
+def AI_interest_eval(chat_history, collection):
+    # We need to separate into multiple prompts. AI unable to handle such a big chunk of text.
+    # 1) Grading based on the 3 categories, Capital Letters, Frequency and Emojis
+    # 2) Giving suggestions + example messages to send.
 
-# use replicate API to generate response
-def replicate_generation(chat_history):
+    reference_chat = RAG(chat_history, collection)
 
-    reference_chat = RAG(chat_history)
-    prompt_template = """
-    You are a dating advisor. You will be given a chat history and you are required to give a overall score on how interested user 1 is to user 2.
-
-    Your task is to evalaute based on 2 categories: capital letters used and the frequency of the text.
-
-    The score for each of them should be between 0 to 10.
-
-    Please output the score in the following format: "category: /10".
-
-    Please give a overall score based on the above two scores, which is between 0 to 20.
-
-    Afterwards, give some suggestions for cur_user for his subsequent message. 
+    system_prompt = "You are a dating advisor."
+    first_prompt = """
+    The chat history is delimited by ###.
+    Reference chat is delimited by !!!.
+    Give the comments based on the chat history.
+    Give suggestions with ideas from the reference chat. (but do not mention the existence of reference chat)
+    The suggestions should create an engaging conversation that is flirty and asks the person out.
 
     1) Give an example message he should send
     2) Comment on how he can improve his messaging style
     3) Provide some interesting topics or pickup lines.
     4) Comment on the other user's interest level in the conversation
-    
-    There is a reference chat \
-    that you can use when giving suggestions. The suggestion should create an engaging conversation that is \
-    flirty and asks the person out.
-    -------------------------------------------
-    Here is one example:
-
-    cur_user:
-
-    Capital letters: 7/10
-    Frequency: 8/10
-
-    oth_user:
-
-    Capital letters: 6/10
-    Frequency: 8/10
-
-    Overall score for cur_user: 20/20
-    Overall score for oth_user: 19/20
-
-    Suggestions:
-    1) Cur user should...
-    2) He is...
-    -------------------------------------------
-    The chat history is delimited by ###.
-    Reference chat is delimited by !!!.
 
     ### {chat_history}
     !!! {reference_chat}
+    """.format(chat_history=chat_history, reference_chat=reference_chat)
 
-    Response:""".format(chat_history=chat_history, reference_chat = reference_chat)
+    AI_response_1 = replicate_generation(
+        first_prompt, system_prompt)
+
+    second_prompt = """
+    The chat history is delimited by ###.
+    Reference chat is delimited by !!!.
+
+    Grade each user, cur_user and oth_user based on 3 sections: Capital Letters, Frequency of messages and Emojis.
+    The score for Capital Letter is decided by the ratio of capital letters to all letters in the messages.\
+    If there is a ratio of 0.5 capital letters, the score should be 5/10.
+
+    The score for Emojis is bnased on the ratio of emojis to messages.\
+    If there is an emoji in every message, the score is 10/10. If there is an emoji in only one of two messages, the score is 5/10.
+
+    The score for Frequency of Messages is according to how many messages the user sends.\
+    The higher the ratio of messages the user sends, the higher the score.\
+    For example, if oth_user sends a ratio of 0.8 of all messages, his score will be a 8/10.
+
+    This is a template of your response. Please edit the <insert_score> to appropriate values.
+    -------------------------------------------
+    cur_user:
+    Capital letters: <insert_score>/10
+    Emojis: <insert_score>/10
+
+    Texting score: <insert_score>/20
+
+    oth_user:
+    Capital letters: <insert_score>/10
+    Frequency: <insert_score>/10
+    Emojis: <insert_score>/10
+
+    Interest score: <insert_score>/30
+
+    Comments for texting improvent on cur_user's part:
+    For cur_user:
+    1) Capital letters usage:
+    2) Emojis usage:
+    3) General texting comments:
+
+
+    --------------------------------------------
+
+    ### {chat_history}
+    
+    """.format(chat_history=chat_history)
+
+    AI_response_2 = replicate_generation(
+        second_prompt, system_prompt)
+
+    AI_response = AI_response_1 + "\n" + AI_response_2
+
+    print("AI_response: ", AI_response)
+
+    return AI_response
+
+
+def replicate_generation(prompt, system_prompt):
+
+    print("Prompt sent to AI: ", prompt)
 
     output = replicate.run(
         model_path,
         input={
             "top_k": 50,
             "top_p": 0.9,
-            "prompt": prompt_template,
+            "prompt": prompt,
+            "ststem_prompt": system_prompt,
             "temperature": 0.3,
             "max_new_tokens": 1024,
-            "prompt_template": "<s>[INST] {prompt} [/INST] ",
+            "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|>\
+                <|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
             "presence_penalty": 0,
             "frequency_penalty": 0
         }
@@ -83,65 +116,9 @@ def replicate_generation(chat_history):
     output = "".join(output)
     return output
 
-def RAG(chat_history):
-    collection = initialise_db()
+
+def RAG(chat_history, collection):
     results = get_documents(collection, chat_history)
     print("this is RAG results: ", results)
 
     return results
-
-def AI_interest_eval(chat_history):
-
-
-    # print("this is chat history", chat_history)
-    # stringed_chat = str(chat_history)
-    # print("string chat: ", stringed_chat)
-    # AI_response = RAG(chat_history, collection)
-    stringed_chat = str(chat_history)
-    AI_response = replicate_generation(stringed_chat)
-    return AI_response
-
-#run LLM on local machine to get response
-# def generate_response(chat_history, model):
-#     prompt_template = "[INST]\n"+\
-#         "You are a dating advisor. You are given a chat history which is in list. The chat history is delimited by ###. In the list, there are sub-lists which contain a conversation chunk."+\
-#         "The first element of each sublist is user1. The other element is user 2.\n"+\
-#         "Give a grade on how interested user 1 is to user 2.\n"+\
-#         f"### {chat_history} \n"+\
-#         "Response:\n[/INST]"
-    
-#     prompt = PromptTemplate.from_template(prompt_template)
-
-#     chain = prompt | model
-#     response = chain.invoke({"chat_history": chat_history})
-#     print(response)
-#     return response
-
-
-#Shreyas Code
-# def initialise_model(model_path,device_map):
-#     tokenizer = AutoTokenizer.from_pretrained(model_path)
-#     tokenizer.pad_token = tokenizer.eos_token
-#     tokenizer.padding_side = "right"
-
-#     model = AutoModelForCausalLM.from_pretrained(
-#         model_path,
-#         device_map=device_map,
-#         trust_remote_code=False,
-#         cache_dir='./models',
-#         revision="main"
-#     )
-
-#     scoring_pipeline = pipeline(
-#         model=model,
-#         tokenizer=tokenizer,
-#         task="text-generation",
-#         return_full_text=False,
-#         temperature=0.1,
-#         do_sample=True,
-#         top_p=0.95,
-#         top_k=40,
-#         max_new_tokens=300
-#     )
-#     mistral_pipeline = HuggingFacePipeline(pipeline=scoring_pipeline)
-#     return mistral_pipeline
