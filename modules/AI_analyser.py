@@ -87,7 +87,7 @@ def AI_interest_eval(chat_history, collection):
     AI_response_2 = replicate_generation(
         second_prompt, system_prompt)
 
-    AI_response = AI_response_1 + "\n" + AI_response_2
+    AI_response = [AI_response_1, AI_response_2]
 
     print("AI_response: ", AI_response)
 
